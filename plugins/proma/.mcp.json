@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "proma": {
+      "type": "http",
+      "url": "https://server.proma.ai/mcp/connectors"
+    }
+  }
+}

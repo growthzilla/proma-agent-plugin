@@ -1,0 +1,7 @@
+{
+  "name": "proma",
+  "version": "0.1.0",
+  "description": "Connects Claude Code to Proma's hosted MCP server and adds a skill for working with Proma spaces, systems, sheets, automations, and forms.",
+  "author": { "name": "Proma", "url": "https://proma.ai" },
+  "homepage": "https://proma.ai"
+}

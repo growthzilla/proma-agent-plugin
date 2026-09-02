@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "proma",
+  "description": "Proma agent plugins",
+  "owner": { "name": "Proma", "url": "https://proma.ai" },
+  "plugins": [
+    {
+      "name": "proma",
+      "source": "./plugins/proma",
+      "description": "Connects Claude Code to Proma's hosted MCP server and adds a skill for working with Proma spaces, systems, sheets, automations, and forms.",
+      "version": "0.1.0",
+      "category": "productivity"
+    }
+  ]
+}
