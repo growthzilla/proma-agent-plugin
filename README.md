@@ -12,7 +12,7 @@ is a `git clone` performed by your own git credentials.
 Two commands inside Claude Code:
 
 ```
-/plugin marketplace add promaai/agent-plugins
+/plugin marketplace add growthzilla/proma-agent-plugin
 /plugin install proma@proma
 ```
 
@@ -34,7 +34,7 @@ To have a repo set this up for everyone who opens it, commit a
     "proma": {
       "source": {
         "source": "github",
-        "repo": "promaai/agent-plugins"
+        "repo": "growthzilla/proma-agent-plugin"
       }
     }
   },
