@@ -1,7 +1,10 @@
 {
   "name": "proma",
-  "version": "0.1.0",
-  "description": "Connects Claude Code to Proma's hosted MCP server and adds a skill for working with Proma spaces, systems, sheets, automations, and forms.",
+  "version": "0.2.0",
+  "description": "Work in Proma from your AI assistant: read and write rows, and build systems, forms and automations through Proma's hosted MCP server.",
   "author": { "name": "Proma", "url": "https://proma.ai" },
-  "homepage": "https://proma.ai"
+  "homepage": "https://proma.ai",
+  "repository": "https://github.com/growthzilla/proma-agent-plugin",
+  "license": "MIT",
+  "keywords": ["proma", "no-code", "database", "automation", "workflow", "mcp"]
 }
