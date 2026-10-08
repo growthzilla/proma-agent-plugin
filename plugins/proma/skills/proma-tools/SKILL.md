@@ -1,126 +1,229 @@
 ---
 name: proma-tools
-description: Use when a request touches Proma - reading or changing a Space, System, Sheet, column, view or row, setting up an automation, or creating or reading form submissions - including when the user says "in Proma", names a Proma space/system/sheet, pastes a proma.ai link, or asks where some record lives in their workspace.
+description: Use when a request touches Proma through the Proma MCP server - reading or changing a Space, System, Dataset (sheet), column, interface (view), form or row; building a new system or adding to an existing one; setting up, checking or debugging an automation and its runs; or whenever the user says "in Proma", names a Proma space, system or dataset, or pastes a proma.ai link.
 ---
 
 # Working with Proma
 
-Proma is reached exclusively through the `proma` MCP server that this plugin
-registers (`https://server.proma.ai/mcp/connectors`). There is no CLI and no
-local database - if the server is not connected, nothing in this skill works.
+## What Proma is
 
-> **Status of this file:** every place that needs a real MCP tool name is marked
-> `TODO(tool-name)`. Those markers are deliberate placeholders, not tool names.
-> Never guess a tool name in their place: list the tools the `proma` server
-> actually exposes and use those. If a marker is still present when you need it,
-> say so instead of inventing a call.
+Proma is a no-code work and data platform. Everything is addressed top-down:
+
+```
+Space ─► System ─► Dataset ─► Column      (users may still say "sheet" for dataset)
+                      │
+                      ├─► Interface       (grids, kanban, calendar, forms … ; old word: "view")
+                      └─► Row
+System ─► Role, Automation
+A Form is an Interface type.
+```
+
+- A **System** is an app: a CRM, an intake pipeline, an ops tracker.
+- A **Dataset** is the table where rows live. Its **Columns** are typed.
+- An **Interface** is how an audience sees and edits a dataset. It holds no rows
+  of its own. **Roles** decide which interfaces each person opens.
+- Names are only unique within their parent. Two systems can both have a dataset
+  called "Tasks", so resolve Space → System → Dataset before trusting a bare name.
+
+Every tool runs with the user's own Proma permissions.
 
 ## Before anything else
 
-1. Confirm the `proma` server is connected in this session. If it is not, stop
-   and tell the user - a failed connect is a connection problem, not a missing
-   capability, and it is usually fixed with `/mcp` (reconnect / re-authorize).
-2. Read the server's actual tool list and prefer it over anything written here.
-   The tool set is the source of truth; this file is the map of the territory.
-3. Authentication is OAuth, negotiated by Claude Code at connect time. Never ask
-   the user for a token, and never put one in a file.
+1. **The Proma connection must be connected.** If the Proma tools are missing or
+   fail with an authentication error, stop and say so. That is a connection
+   problem, not a missing capability, and the user fixes it by reconnecting or
+   re-authorizing Proma in their client. `describe_proma` is the only tool that
+   works without sign-in.
+2. **Never ask the user for a token**, API key or password, and never write one
+   to a file. Sign-in is OAuth, handled by the client.
+3. **Scopes.** A connection is granted `proma:read` and/or `proma:write`.
+   - A read-only connection still *lists* the write tools, but calling one is
+     refused, and the error names the missing scope.
+   - Scopes are fixed when the connection opens. To get more, the user
+     re-authorizes the connection in their client.
+   - On a scope refusal, do not retry and do not look for a workaround. Tell the
+     user which scope is missing and how to add it.
 
-## The data model
+## Look before building
 
-Learn these five nouns before making any call - most mistakes are addressing
-mistakes, not argument mistakes.
+`get_context` resolves the numeric ids everything else needs: spaces, systems,
+datasets, columns, roles, interfaces, designs. Pick the `kind`, then filter with
+`query` and `parent_id` rather than paging. `limit` is 50 at most, so a broad
+listing can be cut short.
 
-- **Space** - the top-level container, roughly "a workspace or a team area".
-  Everything else lives inside exactly one Space.
-- **System** - a grouping of related Sheets inside a Space. Think of it as an
-  app: a CRM, an intake pipeline, an ops tracker.
-- **Sheet** - the actual table of records inside a System. This is where data
-  lives.
-- **Column** - a typed field on a Sheet. The type matters: writing a value in
-  the wrong shape (a plain string into a select, a date in the wrong format, an
-  unresolved reference into a relation) is the most common write failure.
-- **View** - a saved lens over a Sheet (filters, sort, visible columns, grouping).
-  A View never holds its own rows; it is a way of looking at the Sheet's rows.
-- **Row** - one record in a Sheet, addressed by id.
+Two things `get_context` returns that are easy to miss:
 
-On top of that:
+- A column item carries its `type`. That is what decides whether it can be a
+  `match_column`, a `group_by`, or a lookup target.
+- An options / states / checklist column carries `domain`, the exact labels it
+  accepts. **Use them verbatim.** Comparisons are literal, so a wrong label or a
+  case difference builds fine, runs green, and never fires.
+  `domain.truncated` means you are seeing a prefix, not the whole set.
 
-- **Automation** - a trigger/condition/action rule attached to a Sheet (or to a
-  System) that fires when records change or on a schedule.
-- **Form** - a public or shared intake surface bound to a Sheet; a submission
-  becomes a Row.
+Then `get_system` (`id`) for a snapshot of one system before revising it. Set
+`include_automation_flows` only when you need the full flows.
 
-Addressing rule: identifiers are scoped downward. Resolve
-Space -> System -> Sheet -> Column/View/Row rather than assuming a bare name is
-unique. Two Spaces can both have a Sheet called "Tasks".
+For any field that takes an AI model, pick from `list_ai_models`, which lists
+the models and Proma tiers this organization can use.
 
-## Standard working loop
+## Reading data
 
-1. **Locate** - resolve names to ids before touching anything.
-   `TODO(tool-name)` to list Spaces, `TODO(tool-name)` to list Systems in a
-   Space, `TODO(tool-name)` to list Sheets in a System.
-2. **Inspect the schema** - never write to a Sheet whose columns you have not
-   read. `TODO(tool-name)` returns the Sheet's columns with their types and
-   options; `TODO(tool-name)` lists its Views.
-3. **Read** - `TODO(tool-name)` to query rows (filter, sort, paginate). Prefer
-   reading through a View when the user refers to one by name, since the View
-   already encodes the filter they mean.
-4. **Write** - `TODO(tool-name)` to create a row, `TODO(tool-name)` to update
-   one, `TODO(tool-name)` to delete one. Match each value to its column type.
-5. **Verify** - read the row back after a write that mattered, and report the
-   real result rather than assuming the write landed.
+Two tools, for different questions:
 
-## Reading
+| Use | When |
+| --- | --- |
+| `read_rows` | Structured rows from one dataset (`system_id`, `dataset_id`), up to 100 per page. Pass `interface_id` to read the rows exactly as that interface's audience sees them, or `column_ids` to narrow the columns instead. |
+| `run_sql` | Aggregates, group-bys and joins across the datasets of one system. SELECT only. Table names are the dataset names in double quotes. Check the dialect with `get_reference('sql')`. |
 
-- Filter server-side with the query tool's own arguments rather than pulling a
-  whole Sheet and filtering locally; Sheets can be large.
-- Paginate to completion when the user asks for a count or a total - a first
-  page is not an answer.
-- When the user names a View ("the Overdue view"), read through that View so
+- `run_sql` **ignores interface and role filters.** Never use it to answer "what
+  does this role see"; use `read_rows` with that `interface_id`. When a SQL total
+  could differ from what a user sees in their interface, say so.
+- When the user names an interface ("the Overdue board"), read through it so
   their filter definition is honoured instead of re-deriving it.
-- Reference/relation columns come back as ids. Resolve them to something human
-  before quoting them back to the user.
+- When asked for a count or a total, paginate `read_rows` to the end or use a SQL
+  aggregate. A first page is not an answer.
 
-## Writing
+## Writing rows
 
-- Create: `TODO(tool-name)`. Update: `TODO(tool-name)`. Delete: `TODO(tool-name)`.
-- Confirm with the user before deleting rows, before bulk edits, and before any
-  change to a Sheet's structure (adding, retyping or removing a Column via
-  `TODO(tool-name)`) - schema changes affect every row and every automation
-  bound to that Sheet.
-- Prefer one batched call over a loop of single-row writes where the server
-  offers a batch form; check the tool list for it rather than assuming.
-- Partial failure is real. If a multi-row write reports some rows rejected, say
-  which ones and why - do not report the operation as clean.
+`write_rows` writes up to 50 rows per call.
 
-## Automations
+- `mode` is `append` or `upsert`. Upsert needs a `match_column` and
+  **overwrites** the matching row's values.
+- Resolve dataset and column ids with `get_context` first, and shape each value
+  to its column `type` and `domain`. Writing against a guessed column fails.
+- Formula columns are refused. Leave them out.
+- It needs admin access on the system. That is a Proma permission, separate from
+  the connection's scope.
+- **Dry-run imports** with `validate_only` first. Fix what it reports, then write.
+- **Confirm with the user** before bulk writes and before any upsert.
+- **Writes fire automations.** Automations on the dataset run for rows you write,
+  so a bulk import into a dataset with a row-created automation can fire it once
+  per row. Check `list_automations` and warn the user first.
+- Problems come back per row in `issues`. Report which rows were rejected and
+  why. **Never call a partial write clean.**
+- Read back the rows after a write that mattered, and report what is actually
+  there.
 
-Automations are trigger -> condition -> action rules. List them with
-`TODO(tool-name)`, read one with `TODO(tool-name)`, create or change one with
-`TODO(tool-name)`, and enable/disable one with `TODO(tool-name)`.
+## Building a system
 
-- Treat an automation as production wiring: read the existing rule before
-  editing it, and describe the behaviour change to the user before applying it.
-- Remember that your own writes can trip automations. A bulk import into a Sheet
-  with a "on row created" rule may fire it once per row - warn the user first.
+```
+get_spec_guide  →  write the spec  →  validate_spec  →  apply_spec
+   (call FIRST)                          (loop until valid)
+```
+
+- `get_spec_guide` first, every time. Per-block detail is not in it: open the
+  drawer you need with `get_reference` (columns, interfaces, roles, sidebar,
+  connections, form_detail, knowledge_base, agents, campaigns, dashboards,
+  designs, sample_data, editing, automations, logic, sql). Whole worked specs
+  come from `get_example_system`.
+- `validate_spec` is a dry run. Fix all `issues` (each has a JSON path), validate
+  again, repeat. `provisional_findings` were judged against a still-broken
+  document: read them for direction, do not chase each one.
+- When it goes valid you get a `plan`. **Read it against what the user actually
+  asked for.** A spec can be valid and still be the wrong system.
+- If the spec defines roles you also get an `audience_plan`. Show it to the user:
+  "here is what each person sees when they log in" is a question they can answer.
+  `apply_spec` requires that response's `spec_digest` for any spec with roles.
+- `apply_spec` returns `audience_check`. `role_opens_nothing` and
+  `home_shows_no_rows` both mean somebody logs in to a blank screen. Report them.
+- **Sample data:** only pass `sample_data` after the user explicitly confirms they
+  want demo rows. Otherwise build the empty structure.
+- Pass a stable `client_request_id` so a retry after a timeout does not build a
+  second copy of the system.
+
+## Editing and deleting structure
+
+**Edits are additive only.** To add to an existing system, call `apply_spec`
+with `system.id` set, give the dataset its real numeric `id`, and list only the
+new columns and interfaces. `get_reference('editing')` covers the details.
+
+Removal goes through three tools, and each one is a **dry run by default**:
+
+| Tool | Removes |
+| --- | --- |
+| `delete_columns` | Columns. The report says what would break. |
+| `delete_interfaces` | Interfaces. |
+| `delete_datasets` | Datasets **and their rows, which cannot be recovered.** Blocked while a lookup in another dataset points into it. |
+
+1. Call the delete tool without `confirm` and read the report.
+2. Show the user the report: what goes, and what would break.
+3. Call again with `confirm: true` only after the user agrees to that report.
+
+Never delete as part of a tidy-up the user did not ask for. For
+`delete_datasets`, say plainly that the rows are gone for good.
 
 ## Forms
 
-A Form is an intake surface bound to a Sheet; each submission lands as a Row.
-List forms with `TODO(tool-name)`, read a form's definition with
-`TODO(tool-name)`, create or update one with `TODO(tool-name)`, and read
-submissions with `TODO(tool-name)`.
+A Form is an Interface type, so find it with `get_context` like any interface.
 
-- A form's fields are backed by the Sheet's Columns - a field can only collect
-  what a Column can store, so check the Sheet schema first.
-- Sharing a form link makes it reachable by whoever holds the link. Confirm the
-  intended audience with the user before creating or publishing one.
+```
+get_form_design (form_id)  →  update_form_design
+```
+
+- `get_form_design` returns everything about one form. Read it before changing
+  anything.
+- `update_form_design` changes settings, questions, `show_when` conditions,
+  sections and branding.
+- `required` is a **column** property. Setting it changes the column, so it
+  affects every form on that dataset. Tell the user before you set it.
+
+## Automations
+
+```
+get_automation_guide → validate_automation_spec → apply_automation_spec → check_automation
+```
+
+- `get_automation_guide` first. It covers triggers, control flow and the native
+  action palette.
+- Prefer the guide's native action palette. Only reach for `search_actions` when
+  it genuinely cannot express the action. Then `get_action_schema` for the chosen
+  action's inputs, `get_field_options` for a dynamic field's valid choices, and
+  `list_connections` for the organization's authenticated connections to that
+  piece.
+- Call `get_action_output` to see what a trigger or step outputs **before**
+  writing `{{...}}` templates against it.
+- `validate_automation_spec` is a dry run against the live action schemas.
+- `apply_automation_spec` rolls back **per automation, not per spec**. On
+  `applied: 'partial'`, everything in `created` is already live and published.
+  Retry from `failed_at` onward, never the whole document.
+- To change an existing automation, give it its `id` from `list_automations`;
+  its flow is rebuilt in place. Applying a name that already exists in the
+  system without an `id` is refused. Never rename it to get past that refusal:
+  that publishes a second automation firing on the same event.
+- A `schedule` automation is created **switched off**. Say so to the user rather
+  than reporting it as running.
+- `check_automation` after building. ActivePieces reports a step that silently
+  wrote nothing as SUCCEEDED, so a green run does not mean a working automation.
+  This is the only way to catch a bad `{{...}}` template without waiting for a run.
+- Once it has run, `get_automation_run` shows what each template actually
+  resolved to against real data.
+
+Managing what already exists:
+
+| Tool | Use |
+| --- | --- |
+| `list_automations` | The automations of one system (`system_id`). |
+| `list_automation_runs` | Run history. `status: 'failures'` returns every failing kind. |
+| `get_automation_run` | One run, step by step. It contains real customer data: quote only what is needed. |
+| `toggle_automation` | Enable or disable one automation. |
+| `delete_automation` | Delete one automation. It also removes the underlying flow. Confirm with the user first. |
+
+To debug: `list_automations` → `list_automation_runs` with `status: 'failures'`
+→ `get_automation_run` on a failing run → fix the spec →
+`validate_automation_spec` → `apply_automation_spec` → `check_automation`.
+
+**Treat an automation as live wiring.** Read the existing automation
+(`get_system` with `include_automation_flows`) before editing it, describe the
+behaviour change to the user before applying it, and remember that your own row
+writes can trigger it.
 
 ## Reporting back
 
 - Quote ids alongside names when you report what you changed, so the user can
   find the record.
-- If a tool errors, report the server's actual message. Auth errors ("re-connect
-  in `/mcp`"), permission errors ("your account cannot write to that Space") and
-  validation errors ("that column expects one of ...") need different fixes.
+- If a tool errors, report the server's actual message. Connection errors
+  (reconnect or re-authorize Proma in the client), scope errors (the error names
+  the missing scope), permission errors ("your account cannot write to that
+  system") and validation errors ("that column expects one of ...") need
+  different fixes.
 - Never fabricate a row, a count, or a successful write.

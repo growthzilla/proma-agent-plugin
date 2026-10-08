@@ -1,0 +1,31 @@
+{
+  "name": "proma",
+  "version": "0.2.0",
+  "description": "Work in Proma from your AI assistant: read and write rows, and build systems, forms and automations through Proma's hosted MCP server.",
+  "author": { "name": "Proma", "url": "https://proma.ai" },
+  "homepage": "https://proma.ai",
+  "repository": "https://github.com/growthzilla/proma-agent-plugin",
+  "license": "MIT",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Proma",
+    "shortDescription": "Build and query Proma systems",
+    "longDescription": "Connect your Proma workspace. Read and write rows, ask questions across datasets, build complete systems with datasets, interfaces and roles, design forms, and set up automations. Every action runs with your own Proma permissions.",
+    "developerName": "Proma",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://proma.ai",
+    "supportURL": "https://proma.ai/contact-us/",
+    "privacyPolicyURL": "https://proma.ai/privacy/",
+    "termsOfServiceURL": "https://proma.ai/tos/",
+    "defaultPrompt": [
+      "What's in my Proma workspace?",
+      "Build a Proma system to track client onboarding with tasks and owners.",
+      "Show me which automations failed this week."
+    ],
+    "brandColor": "#00B79B",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png"
+  }
+}
