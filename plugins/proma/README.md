@@ -28,6 +28,9 @@ Proma, it opens a Proma page where you approve access. There is nothing to
 paste: no token, no API key. Every action runs with your own Proma permissions,
 and a connection granted only read access cannot write.
 
+Each connection works in one Proma organization. To switch, disconnect (Proma →
+Profile → Connected apps, or in your client) and connect again.
+
 ## Install in Claude Code
 
 ```
@@ -61,7 +64,7 @@ codex mcp login proma
 
 ## Links
 
-- [Documentation](https://proma.ai/docs/)
+- [Documentation](https://proma.ai/docs/mcp)
 - [Privacy policy](https://proma.ai/privacy/)
 - [Terms of service](https://proma.ai/tos/)
 - [Support](https://proma.ai/contact-us/)
