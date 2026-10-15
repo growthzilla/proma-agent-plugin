@@ -67,4 +67,4 @@ codex mcp login proma
 - [Documentation](https://proma.ai/docs/mcp)
 - [Privacy policy](https://proma.ai/privacy/)
 - [Terms of service](https://proma.ai/tos/)
-- [Support](https://proma.ai/contact-us/)
+- [Support](https://proma.ai/support/)
