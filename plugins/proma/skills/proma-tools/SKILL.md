@@ -32,8 +32,11 @@ Every tool runs with the user's own Proma permissions.
 1. **The Proma connection must be connected.** If the Proma tools are missing or
    fail with an authentication error, stop and say so. That is a connection
    problem, not a missing capability, and the user fixes it by reconnecting or
-   re-authorizing Proma in their client. `describe_proma` is the only tool that
-   works without sign-in.
+   re-authorizing Proma in their client. Until the user signs in, the Proma
+   server exposes no tools at all: every request is refused until OAuth
+   completes, and the client shows Proma as needing authorization.
+   Each connection works in one Proma organization. To switch, disconnect
+   (Proma → Profile → Connected apps, or in your client) and connect again.
 2. **Never ask the user for a token**, API key or password, and never write one
    to a file. Sign-in is OAuth, handled by the client.
 3. **Scopes.** A connection is granted `proma:read` and/or `proma:write`.
@@ -41,6 +44,10 @@ Every tool runs with the user's own Proma permissions.
      refused, and the error names the missing scope.
    - Scopes are fixed when the connection opens. To get more, the user
      re-authorizes the connection in their client.
+   - On a read-only connection the dry runs (`write_rows` with `validate_only`,
+     `delete_*` without `confirm`) are refused as well. Re-authorizing grants
+     whatever the client requests, so if it still comes back read-only,
+     reconnect through a client that asks for `proma:write`.
    - On a scope refusal, do not retry and do not look for a workaround. Tell the
      user which scope is missing and how to add it.
 

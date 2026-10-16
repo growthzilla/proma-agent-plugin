@@ -2,13 +2,13 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "proma",
   "description": "Proma plugins for AI assistants",
-  "owner": { "name": "Proma", "url": "https://proma.ai" },
+  "owner": { "name": "Growthzilla Inc.", "url": "https://proma.ai" },
   "plugins": [
     {
       "name": "proma",
       "source": "./plugins/proma",
       "description": "Work in Proma from your AI assistant: read and write rows, and build systems, forms and automations through Proma's hosted MCP server.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "category": "productivity"
     }
   ]

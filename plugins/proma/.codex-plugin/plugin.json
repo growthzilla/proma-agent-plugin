@@ -1,8 +1,8 @@
 {
   "name": "proma",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Work in Proma from your AI assistant: read and write rows, and build systems, forms and automations through Proma's hosted MCP server.",
-  "author": { "name": "Proma", "url": "https://proma.ai" },
+  "author": { "name": "Growthzilla Inc.", "url": "https://proma.ai" },
   "homepage": "https://proma.ai",
   "repository": "https://github.com/growthzilla/proma-agent-plugin",
   "license": "MIT",
@@ -11,18 +11,18 @@
   "interface": {
     "displayName": "Proma",
     "shortDescription": "Build and query Proma systems",
-    "longDescription": "Connect your Proma workspace. Read and write rows, ask questions across datasets, build complete systems with datasets, interfaces and roles, design forms, and set up automations. Every action runs with your own Proma permissions.",
-    "developerName": "Proma",
+    "longDescription": "Proma is a no-code platform where teams build their own business systems, such as CRMs, support desks, order trackers and inventory, out of datasets, forms and interfaces. The Proma connector lets your AI assistant work in your Proma organization for you.\n\nWhat you can do:\n- See how your systems are set up: their datasets, columns, forms and interfaces.\n- Ask questions about your data, from one record to grouped totals across datasets.\n- Add and update records, for example importing a pasted list or fixing a batch of entries.\n- Build a new system, or add to an existing one, from a plain-language description, and design its forms.\n- See your automations and their recent runs, including which runs failed.\n- Set up automations that run on their own, such as a reminder when a record changes.\n\nWho it is for: teams that already run their work in Proma and want to read, update and extend it from their AI assistant.\n\nHow it works: you sign in on a Proma page, choose one organization and approve the app. The assistant then acts as you, in that organization only, with your existing Proma permissions. Actions that change or delete data are marked so your assistant can ask you first. You can see and disconnect connected apps at any time in Proma under Profile, Connected apps.\n\nLimits: you need a Proma account that belongs to at least one organization. Each connection works in one organization. A data question returns up to 1,000 rows, rows are written up to 50 at a time, and each person can make up to 120 requests a minute.",
+    "developerName": "Growthzilla Inc.",
     "category": "Productivity",
     "capabilities": ["Read", "Write"],
     "websiteURL": "https://proma.ai",
-    "supportURL": "https://proma.ai/contact-us/",
+    "supportURL": "https://proma.ai/support/",
     "privacyPolicyURL": "https://proma.ai/privacy/",
     "termsOfServiceURL": "https://proma.ai/tos/",
     "defaultPrompt": [
       "What's in my Proma workspace?",
-      "Build a Proma system to track client onboarding with tasks and owners.",
-      "Show me which automations failed this week."
+      "How many support tickets were opened last week, by priority?",
+      "Build a Proma system to track client onboarding with tasks and owners."
     ],
     "brandColor": "#00B79B",
     "composerIcon": "./assets/icon.png",
