@@ -1,6 +1,6 @@
 {
   "name": "proma",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Work in Proma from your AI assistant: read and write rows, and build systems, forms and automations through Proma's hosted MCP server.",
   "author": { "name": "Growthzilla Inc.", "url": "https://proma.ai" },
   "homepage": "https://proma.ai",
@@ -27,5 +27,65 @@
     "brandColor": "#00B79B",
     "composerIcon": "./assets/icon.png",
     "logo": "./assets/logo.png"
+  },
+  "extensions": {
+    "com.openai": {
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Overview of the workspace. Read-only.",
+              "prompt": "What's in my Proma workspace?",
+              "tools_triggered": "get_context",
+              "expected_behavior": "Names the Sample Business space and its four systems: Sales CRM, Support Desk, Orders & Inventory and Reviewer Sandbox. Changes nothing."
+            },
+            {
+              "description": "A question that needs counting across rows. Read-only.",
+              "prompt": "In my Support Desk, how many tickets are open, by priority?",
+              "tools_triggered": "get_context, get_system, run_sql",
+              "expected_behavior": "A count of Open tickets for each priority (Low, Medium, High, Urgent) that matches the Tickets dataset in Proma. Changes nothing."
+            },
+            {
+              "description": "Add one record to a dataset.",
+              "prompt": "Add a note to my Reviewer Sandbox titled \"Call Acme Bakery on Friday\" with the tag Todo.",
+              "tools_triggered": "get_context, get_system, write_rows",
+              "expected_behavior": "Asks the user to confirm the change first. After confirmation, reports 1 row added. The note appears in Reviewer Sandbox, Notes, with tag Todo. No other row changes."
+            },
+            {
+              "description": "Build a new system from a plain-language description.",
+              "prompt": "Build a Proma system to track client onboarding with tasks and owners.",
+              "tools_triggered": "get_spec_guide, get_context, validate_spec, apply_spec",
+              "expected_behavior": "Proposes a design, for example Clients and Onboarding tasks with task, owner, due date and status, and confirms it with the user. Then validates and builds it. A new Client Onboarding system appears in Proma. Existing systems are not changed."
+            },
+            {
+              "description": "Set up an automation that uses only Proma's own record actions.",
+              "prompt": "In my Reviewer Sandbox, set up an automation: when a note's tag changes, set its status to Needs review.",
+              "tools_triggered": "get_automation_guide, get_system, validate_automation_spec, apply_automation_spec",
+              "expected_behavior": "Validates the automation, confirms with the user, then creates it switched on. In Proma, changing a note's tag sets its status to Needs review within about a minute. Uses no outside apps. Other automations are not changed."
+            }
+          ],
+          "negative": [
+            {
+              "description": "A general writing task. No Proma tool should be called: no Proma data is needed and Proma has no tool that sends email. Expected: a draft email in the chat.",
+              "prompt": "Draft a short, friendly reminder email to a customer whose invoice is overdue."
+            },
+            {
+              "description": "A vague request that could change or delete data. It must not call write_rows, any delete tool or apply_spec. Expected: asks what clean up should mean, may read the structure first, and changes nothing until the user answers.",
+              "prompt": "Clean up my Sales CRM."
+            },
+            {
+              "description": "A request outside the connected organization. It must not call any write tool or invent data. Expected: explains that this connection only reaches the Proma Review organization, and that to use another organization the user disconnects and connects again, choosing it.",
+              "prompt": "Show me the projects in my other Proma organization."
+            }
+          ]
+        },
+        "demo_recording_url": "https://companionapp.proma.ai/proma-review-demo.mp4",
+        "commerce": false,
+        "commerce_description": "Proma does not sell products or take payments through this plugin."
+      },
+      "publication": {
+        "release_notes": "First public release. Connect Proma to ChatGPT and Codex: see how your systems are set up, ask questions about your data, add and update records, build systems and forms, and set up automations. Each connection works in one organization you choose, with your own Proma permissions."
+      }
+    }
   }
 }
