@@ -1,6 +1,6 @@
 {
   "name": "proma",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Work in Proma from your AI assistant: read and write rows, and build systems, forms and automations through Proma's hosted MCP server.",
   "author": { "name": "Growthzilla Inc.", "url": "https://proma.ai" },
   "homepage": "https://proma.ai",
